@@ -1,0 +1,48 @@
+# --- Never commit: credentials, live infrastructure, patient data ------------
+
+# Account settings and operator addresses (see .env.example).
+.env
+
+# Terraform state records every live address, subnet id, account id and ARN.
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/*.tfvars
+
+# Generated from `terraform output` by `make configure`: holds this deploy's
+# private addresses, which is exactly why it is generated rather than stored.
+conf/profiles/*.local.yaml
+
+# The DICOM tree, fetched from TCIA. ~19 GB, and not ours to redistribute.
+data/
+
+# --- Generated output --------------------------------------------------------
+
+# The paper's figures are IEEE copyright once the paper is accepted, so they
+# are regenerated with `make figures` rather than committed.
+figures/
+
+# Local playground, Spark event logs, and collected campaign runs.
+results/local/
+results/aws/
+results/eventlog/
+*.log
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Editors and OS ----------------------------------------------------------
+.idea/
+.vscode/
+.DS_Store

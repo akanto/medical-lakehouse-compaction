@@ -1,0 +1,244 @@
+{
+  "timestamp": "20260829_190144",
+  "profile": "conf/profiles/experiment.yaml",
+  "n_series": 200,
+  "tables": {
+    "s1": {
+      "data_files": 35485,
+      "row_count": 35485,
+      "total_bytes": 9488020499,
+      "file_size_bytes": {
+        "min": 204967,
+        "p25": 252366,
+        "median": 260353,
+        "p75": 271143,
+        "max": 387331,
+        "mean": 267381
+      },
+      "snapshots": 200
+    },
+    "s2": {
+      "data_files": 36,
+      "row_count": 35485,
+      "total_bytes": 9287006288,
+      "file_size_bytes": {
+        "min": 2574060,
+        "p25": 265198174,
+        "median": 265282918,
+        "p75": 265335720,
+        "max": 265368752,
+        "mean": 257972397
+      },
+      "snapshots": 1
+    },
+    "s3": {
+      "data_files": 200,
+      "row_count": 35485,
+      "total_bytes": 9289299305,
+      "file_size_bytes": {
+        "min": 24397122,
+        "p25": 32876691,
+        "median": 35531866,
+        "p75": 60672261,
+        "max": 266396076,
+        "mean": 46446497
+      },
+      "snapshots": 1
+    },
+    "s4": {
+      "data_files": 200,
+      "row_count": 35485,
+      "total_bytes": 9289299305,
+      "file_size_bytes": {
+        "min": 24397122,
+        "p25": 32876691,
+        "median": 35531866,
+        "p75": 60672261,
+        "max": 266396076,
+        "mean": 46446497
+      },
+      "snapshots": 1
+    }
+  },
+  "fingerprints": {
+    "w1_series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+    "runs": [
+      {
+        "strategy": "s1",
+        "workload": "w1",
+        "wall_clock_s": 2.3079178699990734,
+        "scan_tasks": 0,
+        "bytes_on_wire": 70525630,
+        "s3_get_requests": 833,
+        "s3_total_requests": 1122,
+        "series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+        "pass": "warmup"
+      },
+      {
+        "strategy": "s1",
+        "workload": "w1",
+        "wall_clock_s": 1.8892004750014166,
+        "scan_tasks": 0,
+        "bytes_on_wire": 70335426,
+        "s3_get_requests": 830,
+        "s3_total_requests": 1108,
+        "series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+        "pass": "measured"
+      },
+      {
+        "strategy": "s1",
+        "workload": "w3",
+        "wall_clock_s": 38.54276141500304,
+        "scan_tasks": 0,
+        "bytes_on_wire": 140914622,
+        "s3_get_requests": 106457,
+        "s3_total_requests": 141944,
+        "series_uid": null,
+        "pass": "warmup"
+      },
+      {
+        "strategy": "s1",
+        "workload": "w3",
+        "wall_clock_s": 38.196944561001146,
+        "scan_tasks": 0,
+        "bytes_on_wire": 141104826,
+        "s3_get_requests": 106460,
+        "s3_total_requests": 141958,
+        "series_uid": null,
+        "pass": "measured"
+      },
+      {
+        "strategy": "s2",
+        "workload": "w1",
+        "wall_clock_s": 37.922039330998814,
+        "scan_tasks": 0,
+        "bytes_on_wire": 16511737940,
+        "s3_get_requests": 690,
+        "s3_total_requests": 846,
+        "series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+        "pass": "warmup"
+      },
+      {
+        "strategy": "s2",
+        "workload": "w1",
+        "wall_clock_s": 35.669836873999884,
+        "scan_tasks": 0,
+        "bytes_on_wire": 16511737940,
+        "s3_get_requests": 690,
+        "s3_total_requests": 846,
+        "series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+        "pass": "measured"
+      },
+      {
+        "strategy": "s2",
+        "workload": "w3",
+        "wall_clock_s": 0.36333887799992226,
+        "scan_tasks": 0,
+        "bytes_on_wire": 866634,
+        "s3_get_requests": 221,
+        "s3_total_requests": 305,
+        "series_uid": null,
+        "pass": "warmup"
+      },
+      {
+        "strategy": "s2",
+        "workload": "w3",
+        "wall_clock_s": 0.2860989340006199,
+        "scan_tasks": 0,
+        "bytes_on_wire": 859328,
+        "s3_get_requests": 218,
+        "s3_total_requests": 291,
+        "series_uid": null,
+        "pass": "measured"
+      },
+      {
+        "strategy": "s3",
+        "workload": "w1",
+        "wall_clock_s": 1.9194926009986375,
+        "scan_tasks": 0,
+        "bytes_on_wire": 67347011,
+        "s3_get_requests": 14,
+        "s3_total_requests": 28,
+        "series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+        "pass": "warmup"
+      },
+      {
+        "strategy": "s3",
+        "workload": "w1",
+        "wall_clock_s": 1.8772040430012567,
+        "scan_tasks": 0,
+        "bytes_on_wire": 67340112,
+        "s3_get_requests": 11,
+        "s3_total_requests": 14,
+        "series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+        "pass": "measured"
+      },
+      {
+        "strategy": "s3",
+        "workload": "w3",
+        "wall_clock_s": 0.5465479859994957,
+        "scan_tasks": 0,
+        "bytes_on_wire": 916637,
+        "s3_get_requests": 604,
+        "s3_total_requests": 806,
+        "series_uid": null,
+        "pass": "warmup"
+      },
+      {
+        "strategy": "s3",
+        "workload": "w3",
+        "wall_clock_s": 0.5061695859985775,
+        "scan_tasks": 0,
+        "bytes_on_wire": 916637,
+        "s3_get_requests": 604,
+        "s3_total_requests": 806,
+        "series_uid": null,
+        "pass": "measured"
+      },
+      {
+        "strategy": "s4",
+        "workload": "w1",
+        "wall_clock_s": 1.969900244002929,
+        "scan_tasks": 0,
+        "bytes_on_wire": 67217745,
+        "s3_get_requests": 12,
+        "s3_total_requests": 26,
+        "series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+        "pass": "warmup"
+      },
+      {
+        "strategy": "s4",
+        "workload": "w1",
+        "wall_clock_s": 1.8651040229997307,
+        "scan_tasks": 0,
+        "bytes_on_wire": 67210685,
+        "s3_get_requests": 9,
+        "s3_total_requests": 12,
+        "series_uid": "1.3.6.1.4.1.14519.5.2.1.6279.6001.272344603176687884771013620823",
+        "pass": "measured"
+      },
+      {
+        "strategy": "s4",
+        "workload": "w3",
+        "wall_clock_s": 0.7460242790002667,
+        "scan_tasks": 0,
+        "bytes_on_wire": 918282,
+        "s3_get_requests": 604,
+        "s3_total_requests": 806,
+        "series_uid": null,
+        "pass": "warmup"
+      },
+      {
+        "strategy": "s4",
+        "workload": "w3",
+        "wall_clock_s": 0.47775655199802713,
+        "scan_tasks": 0,
+        "bytes_on_wire": 918282,
+        "s3_get_requests": 604,
+        "s3_total_requests": 806,
+        "series_uid": null,
+        "pass": "measured"
+      }
+    ]
+  }
+}

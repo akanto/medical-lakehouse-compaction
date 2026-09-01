@@ -1,0 +1,21 @@
+# Validation run: the full grid shape at 10 series and one repetition, to
+# exercise every cell transition before committing campaign hours. See
+# experiment.yaml for what each setting means.
+#
+# endpoint / tsg_host / minio_ping_host come from `make configure`.
+warehouse: "s3a://dicom-lakehouse/warehouse"
+access_key: "minioadmin"
+secret_key: "minioadmin"
+n_series: 10
+target_file_size_mb: 256
+uid_metrics_truncate: 64
+rate_gbit: [5, 2, 1]
+latency_ms: [0, 2, 5, 10, 25]
+benchmark_runs: 1
+w1_n_series: 3
+w2_n_batches: 1
+w2_batch_series: 30
+w2_seed: 42
+warmup: true
+tsg_ssh_user: "ubuntu"
+event_log_dir: "results/eventlog"
