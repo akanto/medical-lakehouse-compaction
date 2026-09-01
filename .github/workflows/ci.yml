@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "feature/**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  # The RESULTS lane: prove a clean checkout still renders the tables and
+  # figures from the committed campaign. No AWS, no Spark, no JVM.
+  results:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: make tables
+      - run: make figures
+
+  # The EXPERIMENT lane's unit tests. Spark runs in local mode, so this needs a
+  # JVM but no cloud account.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: pip install -r requirements-experiment.txt
+      - run: make test
+
+  # Terraform must parse and typecheck. -backend=false and validate only:
+  # no credentials, no API calls, nothing provisioned.
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform -chdir=terraform init -backend=false
+      - run: terraform -chdir=terraform validate

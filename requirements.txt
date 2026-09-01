@@ -1,0 +1,7 @@
+# The RESULTS lane: redraw the paper's tables and figures from the committed
+# campaign. This is all it needs — no Spark, no JVM, no cloud SDK.
+#
+# matplotlib is pinned rather than floated: the promise of this lane is that
+# someone else gets the published figures, and minor releases move default
+# fonts, tick placement and legend metrics.
+matplotlib==3.11.0
