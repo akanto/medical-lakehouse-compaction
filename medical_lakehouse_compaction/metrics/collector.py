@@ -7,7 +7,7 @@ from pyspark.sql import SparkSession
 from medical_lakehouse_compaction.metrics.stage_log import make_tag
 
 # S3A IOStatistics counter keys (hadoop-aws 3.4.1). These are live, in-process
-# counters maintained by the S3A connector — unlike MinIO's Prometheus request
+# counters maintained by the S3A connector — unlike the object store's Prometheus request
 # counters, which refresh on a ~10s server-side cache and so cannot be deltaed
 # per job. Each is one round-trip over the WAN link.
 _GET_KEY = "action_http_get_request"      # object data reads

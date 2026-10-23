@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta, timezone
 
 from pyspark.sql import SparkSession
@@ -11,7 +12,7 @@ def run_generic_compaction(
     target_table: str,
     target_file_size_mb: int = 256,
     uid_metrics_truncate: int | None = UID_METRICS_TRUNCATE,
-) -> None:
+) -> dict[str, float]:
     """
     S2: Iceberg's native generic compaction (`rewrite_data_files`, binpack).
 
@@ -43,6 +44,12 @@ def run_generic_compaction(
             whole UID range at any truncation — but set identically to the
             other strategies to keep layout the only variable
             (medical_lakehouse_compaction/table_metrics.py).
+
+    Returns:
+        Wall-clock seconds of each step: ``clone_s``, ``rewrite_s`` and
+        ``expire_s``. Only ``rewrite_s`` is what a production optimizer pays
+        on an existing raw table; the clone exists because the experiment
+        keeps S1 intact next to S2.
     """
     # Ensure namespace exists
     spark.sql("CREATE NAMESPACE IF NOT EXISTS dicom.db")
@@ -51,10 +58,13 @@ def run_generic_compaction(
 
     # One file per slice — unique sop_instance_uid per range partition, no
     # hash collisions (matches the ingestion writer's S1 layout).
+    t0 = time.perf_counter()
     n_slices = df.count()
     write_with_uid_metrics(
         df.repartitionByRange(n_slices, "sop_instance_uid"),
         target_table, uid_metrics_truncate)
+
+    t1 = time.perf_counter()
 
     catalog, ident = target_table.split(".", 1)
     size_bytes = target_file_size_mb * 1024 * 1024
@@ -75,6 +85,7 @@ def run_generic_compaction(
     # interpreted in the Spark session timezone, so +48 h keeps it in the
     # future regardless of the host timezone (a +1 h UTC horizon read as
     # CEST landed in the past and silently expired nothing).
+    t2 = time.perf_counter()
     horizon = (datetime.now(timezone.utc) + timedelta(hours=48)) \
         .strftime("%Y-%m-%d %H:%M:%S")
     spark.sql(f"""
@@ -84,3 +95,5 @@ def run_generic_compaction(
           retain_last => 1
         )
     """)
+    t3 = time.perf_counter()
+    return {"clone_s": t1 - t0, "rewrite_s": t2 - t1, "expire_s": t3 - t2}

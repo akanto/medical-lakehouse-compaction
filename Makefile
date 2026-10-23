@@ -10,9 +10,9 @@
 #   EXPERIMENT  Re-run the measurement campaign end to end: provision the AWS
 #             testbed, fetch the dataset, build the four layouts, sweep the
 #             network grid, collect, destroy. Needs an AWS account and about
-#             eleven hours.
+#             ten hours.
 #
-# A third, unadvertised path runs the pipeline against MinIO in Docker on ten
+# A third, unadvertised path runs the pipeline against SILO in Docker on ten
 # series, so the harness can be exercised without touching AWS: see PLAYGROUND.
 
 SHELL := /bin/bash
@@ -33,9 +33,10 @@ PYTHON  ?= $(shell [ -x $(VENV)/bin/python ] && echo $(VENV)/bin/python || echo 
 PACKAGE := medical_lakehouse_compaction
 
 # --- Committed campaign: the paper's dataset ---------------------------------
-CAMPAIGN     := results/campaign-2026-08-30
-MERGED       := $(CAMPAIGN)/benchmark_campaign_20260830_merged.json
-SHAPES       := $(CAMPAIGN)/table_shapes_raw_20260829_190144.json
+CAMPAIGN     := results/campaign-2026-10-21
+MERGED       := $(CAMPAIGN)/benchmark_campaign_20261021_merged.json
+SHAPES       := $(CAMPAIGN)/table_shapes_raw_20261021_092650.json
+BUILD_TIMES  := $(CAMPAIGN)/build_times_optimize_20261027_180609.json
 FIGURES_DIR  := figures
 
 # --- Terraform inputs, mapped from the plain names in .env -------------------
@@ -71,7 +72,7 @@ MINIO_PRIVATE_IP = $(shell terraform -chdir=$(TF_DIR) output -raw minio_private_
 TSG_HOST        = $(shell terraform -chdir=$(TF_DIR) output -raw tsg_public_ip 2>/dev/null)
 TSG_PRIVATE_IP  = $(shell terraform -chdir=$(TF_DIR) output -raw tsg_private_ip 2>/dev/null)
 
-.PHONY: all help tables figures cell-stats clean \
+.PHONY: all help tables figures cell-stats break-even clean \
         install install-experiment test \
         minio-up minio-down smoke-test benchmark evaluate download \
         tf-init tf-plan tf-apply tf-destroy tf-output configure status \
@@ -83,7 +84,7 @@ TSG_PRIVATE_IP  = $(shell terraform -chdir=$(TF_DIR) output -raw tsg_private_ip 
 # ── RESULTS ───────────────────────────────────────────────────────────────────
 
 ## Redraw every table and figure the paper reports.
-all: tables figures
+all: tables break-even figures
 
 ## Tables II and III, printed.
 tables:
@@ -91,11 +92,15 @@ tables:
 	@echo
 	@$(PYTHON) evaluation/make_structural_table.py $(MERGED)
 
-## Pass totals and the per-cell median, mean and standard deviation.
+## Table IV (pass totals) and the per-cell median, mean and standard deviation.
 cell-stats:
 	@$(PYTHON) evaluation/make_cell_stats.py $(MERGED)
 
-## Figures 1-3 into figures/ (not committed: IEEE copyright once accepted).
+## Table V: break-even count of L2-L4 against L1, from the measured build times.
+break-even:
+	@$(PYTHON) evaluation/make_break_even.py $(MERGED) $(BUILD_TIMES)
+
+## Figures 2-4 into figures/ (not committed: IEEE copyright once accepted).
 figures:
 	@mkdir -p $(FIGURES_DIR)
 	@$(PYTHON) evaluation/make_figures.py
@@ -117,17 +122,17 @@ install-experiment:
 test:
 	$(PYTHON) -m pytest tests/ -v
 
-# ── PLAYGROUND (Docker MinIO, no AWS) ─────────────────────────────────────────
+# ── PLAYGROUND (Docker SILO, no AWS) ──────────────────────────────────────────
 
 minio-up:
 	@if ! docker inspect minio --format='{{.State.Health.Status}}' 2>/dev/null | grep -q healthy; then \
 		docker rm -f minio 2>/dev/null || true; \
 		docker compose up -d; \
 	fi
-	@echo "Waiting for MinIO to be ready..."
+	@echo "Waiting for SILO to be ready..."
 	@until docker exec minio mc alias set local http://localhost:9000 minioadmin minioadmin >/dev/null 2>&1; do sleep 1; done
 	@docker exec minio mc mb local/dicom-lakehouse --ignore-existing
-	@echo "MinIO ready at http://localhost:9000"
+	@echo "SILO ready at http://localhost:9000"
 
 minio-down:
 	docker compose down
@@ -135,13 +140,13 @@ minio-down:
 download:
 	$(PYTHON) scripts/download_dataset.py --n-series $(N_SERIES) --output $(DICOM_DIR)
 
-## Ingest and compact ten series against Docker MinIO — the whole harness, ~10 min.
+## Ingest and compact ten series against Docker SILO — the whole harness, ~10 min.
 smoke-test: minio-up
 	@echo "Clearing previous warehouse data for reproducible run..."
 	@docker exec minio mc rm --recursive --force local/dicom-lakehouse/warehouse >/dev/null 2>&1 || true
 	$(PYTHON) scripts/run_ingestion.py --profile $(PROFILE) --dicom-dir $(DICOM_DIR)
 	$(PYTHON) scripts/run_optimization.py --profile $(PROFILE)
-	@echo "Smoke test passed — four Iceberg tables written to MinIO"
+	@echo "Smoke test passed — four Iceberg tables written to SILO"
 
 benchmark: minio-up
 	$(PYTHON) scripts/run_benchmark.py --profile $(BENCHMARK_PROFILE) --output-dir $(RESULTS_DIR)
@@ -241,8 +246,8 @@ tsg-authorize:
 		ssh $(SSH_OPTS) $(REMOTE_USER)@$(TSG_HOST) "cat >> ~/.ssh/authorized_keys && sort -u -o ~/.ssh/authorized_keys ~/.ssh/authorized_keys"
 	ssh $(SSH_OPTS) $(REMOTE_USER)@$(SPARK_HOST) "ssh -o StrictHostKeyChecking=no $(REMOTE_USER)@$(TSG_PRIVATE_IP) 'echo spark-to-tsg SSH OK'"
 
-# Pin Spark and MinIO to their 10 Gb/s baseline, neutralizing EC2 burst credits
-# so the path ceiling is stable across an eleven-hour run.
+# Pin Spark and the object store to their 10 Gb/s baseline, neutralizing EC2 burst credits
+# so the path ceiling is stable across an eight-hour run.
 node-caps:
 	@test -n "$(SPARK_HOST)" || (echo "No spark_public_ip — run make tf-apply first" && exit 1)
 	scp $(SSH_OPTS) scripts/setup_node_cap.sh $(REMOTE_USER)@$(SPARK_HOST):~/
@@ -257,7 +262,7 @@ minio-deploy:
 	scp $(SSH_OPTS) docker-compose.yml $(REMOTE_USER)@$(MINIO_HOST):~/
 	ssh $(SSH_OPTS) $(REMOTE_USER)@$(MINIO_HOST) "sudo docker compose up -d && \
 		(pgrep iperf3 >/dev/null || iperf3 -s -D)"
-	@echo "MinIO up at http://$(MINIO_PRIVATE_IP):9000 (private, via TSG)"
+	@echo "SILO up at http://$(MINIO_PRIVATE_IP):9000 (private, via TSG)"
 
 # ── EXPERIMENT: data pipeline (on the Spark host, detached where long) ────────
 
@@ -321,20 +326,21 @@ clean:
 
 help:
 	@echo "RESULTS — redraw the paper from the committed campaign (no AWS needed)"
-	@echo "  make                  tables and figures"
+	@echo "  make                  tables, break-even and figures"
 	@echo "  make tables           Tables II and III, printed"
-	@echo "  make figures          Figures 1-3 into figures/"
-	@echo "  make cell-stats       dispersion of every cell over the 3 passes"
+	@echo "  make figures          Figures 2-4 into figures/"
+	@echo "  make break-even       Table V, break-even count of each rewrite"
+	@echo "  make cell-stats       Table IV, and the dispersion of every cell"
 	@echo "  make install          install this lane (matplotlib only)"
 	@echo
-	@echo "PLAYGROUND — exercise the harness locally against Docker MinIO"
+	@echo "PLAYGROUND — exercise the harness locally against Docker SILO"
 	@echo "  make install-experiment   install Spark, pydicom, boto3, TCIA client"
 	@echo "  make download             fetch N_SERIES=$(N_SERIES) series from TCIA"
 	@echo "  make smoke-test           ingest + compact all four layouts"
 	@echo "  make benchmark evaluate   run the three workloads and print them"
 	@echo "  make test                 unit tests"
 	@echo
-	@echo "EXPERIMENT — re-run the campaign on AWS (~11 h, needs .env)"
+	@echo "EXPERIMENT — re-run the campaign on AWS (~10 h, needs .env)"
 	@echo "  make tf-init tf-apply     provision the three-instance testbed"
 	@echo "  make configure            write experiment.local.yaml from terraform"
 	@echo "  make remote-sync remote-setup tsg-setup tsg-authorize node-caps minio-deploy"

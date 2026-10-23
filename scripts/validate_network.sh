@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Network path validation — run FROM the Spark instance against MinIO.
+# Network path validation — run FROM the Spark instance against the object store.
 #
 # Usage: ./validate_network.sh <minio_private_ip> [results_dir]
 #
@@ -10,7 +10,7 @@
 #   parallel streams reflect what the workloads can actually get)
 # - tracepath showing the TSG hop (proof traffic transits the gateway)
 # - endpoint TCP buffer sysctls (left at OS defaults, but recorded)
-# Requires `iperf3 -s` running on the MinIO host (make minio-deploy does this).
+# Requires `iperf3 -s` running on the object-store host (make minio-deploy does this).
 
 set -euo pipefail
 

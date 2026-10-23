@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Traffic Shaping Gateway — HTB bandwidth cap + netem delay, run ON the TSG
-# instance (the dedicated gateway that forwards all Spark<->MinIO traffic).
+# instance (the dedicated gateway that forwards all Spark<->object-store traffic).
 #
 # Usage:   sudo ./setup_tsg.sh --rate <gbit|none> --rtt <ms>
 # Examples:
@@ -15,7 +15,7 @@
 #   nominal RTT and apply RTT/2 (e.g. --rtt 25 -> netem delay 12.5ms).
 #   --rtt 0 applies no netem delay (substrate baseline; measure it with ping).
 # - The HTB class caps the SUM of both directions through the ENI. Acceptable:
-#   benchmark traffic is heavily MinIO->Spark asymmetric, so the cap
+#   benchmark traffic is heavily object-store->Spark asymmetric, so the cap
 #   effectively binds the data direction.
 # - netem limit 100000: delayed packets sit in netem's queue; the default
 #   limit (1000) drop-tails part of the TCP window at every tier.
@@ -55,7 +55,7 @@ if [ "$RATE" = "none" ] && [ "$RTT" = "0" ]; then
 fi
 
 # "none" -> effectively uncapped placeholder class well above the path
-# baseline; the per-node 10 Gbit caps on Spark/MinIO then govern the ceiling.
+# baseline; the per-node 10 Gbit caps on Spark and the object store then govern the ceiling.
 if [ "$RATE" = "none" ]; then
   RATE_SPEC="25Gbit"
 else

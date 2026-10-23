@@ -1,4 +1,4 @@
-# Local development against Docker MinIO. See experiment.yaml for what each
+# Local development against Docker SILO. See experiment.yaml for what each
 # setting means.
 warehouse: "s3a://dicom-lakehouse/warehouse"
 endpoint: "http://localhost:9000"

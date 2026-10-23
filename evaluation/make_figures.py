@@ -4,8 +4,8 @@ One figure per workload, each a row of three panels one IEEE column wide: x is
 the injected round-trip time, y is the median wall-clock time, and each panel
 holds one bandwidth limit, with one line per layout.
 
-L4 is not plotted. It tracks L3 to a median difference of 0.2% in W1, 0.3% in
-W2 and 0.9% in W3, so the two lines would overprint; it stays in the tables,
+L4 is not plotted. It tracks L3 to a median difference of 3.1% in W1, 0.4% in
+W2 and 0.1% in W3, so the two lines would overprint; it stays in the tables,
 where the difference is legible.
 
 No crossing point is marked. The grid measures five round-trip times, and a
@@ -43,8 +43,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 REPO = Path(__file__).resolve().parent.parent
-CAMPAIGN = REPO / ("results/campaign-2026-08-30/"
-                   "benchmark_campaign_20260830_merged.json")
+CAMPAIGN = REPO / ("results/campaign-2026-10-21/"
+                   "benchmark_campaign_20261021_merged.json")
 # figures/ is gitignored: the rendered figures are IEEE copyright once the
 # paper is accepted, so they are regenerated rather than committed.
 OUT_DIRS = [REPO / "figures"]

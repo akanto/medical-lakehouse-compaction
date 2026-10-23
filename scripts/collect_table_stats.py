@@ -47,10 +47,13 @@ def table_shape(spark, table: str) -> dict:
     rows = (
         spark.read.format("iceberg").load(f"{table}.files")
         .filter("content = 0")
-        .select("file_size_in_bytes", "record_count")
+        .select("file_size_in_bytes", "record_count", "split_offsets")
         .collect()
     )
     sizes = sorted(r.file_size_in_bytes for r in rows)
+    # For Parquet, Iceberg records one split offset per row group, so this
+    # counts row groups from metadata alone, without opening a footer.
+    row_groups = sorted(len(r.split_offsets or []) for r in rows)
     # method="inclusive": the default ("exclusive") extrapolates past the
     # observed range on small samples, so a two-file table reports a p25
     # below its own smallest file and a p75 above its largest.
@@ -72,6 +75,12 @@ def table_shape(spark, table: str) -> dict:
             # file of the table, so the sizes are a census rather than a
             # sample drawn from one.
             "stdev": round(statistics.pstdev(sizes)) if len(sizes) > 1 else 0,
+        },
+        "row_groups_per_file": {
+            "min": row_groups[0],
+            "median": statistics.median(row_groups),
+            "max": row_groups[-1],
+            "total": sum(row_groups),
         },
         "snapshots": snapshots,
     }
@@ -113,7 +122,9 @@ if __name__ == "__main__":
         s = shapes[key]
         print(f"  shape {key}: {s['data_files']} data files, "
               f"{s['row_count']} rows, {s['total_bytes'] / 2**30:.2f} GiB, "
-              f"median file {s['file_size_bytes']['median'] / 2**20:.2f} MiB",
+              f"median file {s['file_size_bytes']['median'] / 2**20:.2f} MiB, "
+              f"row groups per file {s['row_groups_per_file']['min']}-"
+              f"{s['row_groups_per_file']['max']}",
               flush=True)
 
     fingerprints = None

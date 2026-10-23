@@ -5,7 +5,8 @@ Every step states the command, what correct output looks like, and the
 condition that must hold before continuing. A step whose check fails is a stop
 — later steps assume the earlier ones held.
 
-Budget roughly 11 hours of grid time plus about an hour of setup. The testbed
+Budget roughly 8 hours of grid time plus about two hours of setup, dataset
+fetch and table builds. The testbed
 runs three `c5n.2xlarge` instances for the whole of it.
 
 ## Step 0 — Prerequisites
@@ -50,12 +51,12 @@ for SSH themselves.
 make remote-sync remote-setup     # repo + venv on the Spark host
 make tsg-setup                    # must print "TSG ready (ip_forward=1)"
 make tsg-authorize                # must print "spark-to-tsg SSH OK"
-make node-caps                    # pin Spark and MinIO to their 10 Gb/s baseline
-make minio-deploy
+make node-caps                    # pin Spark and the object store to their 10 Gb/s baseline
+make minio-deploy                 # SILO, pinned by digest in docker-compose.yml
 ```
 
 `remote-setup` must end with a `java -version` line. `node-caps` neutralizes EC2
-burst credits, without which the path ceiling drifts over an eleven-hour run.
+burst credits, without which the path ceiling drifts over an eight-hour run.
 
 ## Step 4 — Validate the network path
 
@@ -70,7 +71,7 @@ Shaping is still clear here, so expect:
 
 - ping average between 0.2 and 0.8 ms — the substrate baseline through the
   gateway. Record it; every later measured RTT is nominal plus this value.
-- tracepath showing **two** hops: the gateway, then MinIO reached, `pmtu 9001`.
+- tracepath showing **two** hops: the gateway, then the object store reached, `pmtu 9001`.
 - iperf3 around 9–10 Gb/s, above every shaped tier.
 
 If ping fails, or tracepath does not show the gateway hop, stop. Traffic is
@@ -102,11 +103,13 @@ make remote-pipeline-log LOG=optimize.log
 ```
 
 `optimize` must end with `Done.` and report `UID manifest bounds: truncate(64)`.
+Both steps write their build times to `results/build_times_*.json`, which
+`make break-even` reads.
 That setting rides table creation: changing it means rebuilding the tables and
 re-running the whole campaign, and a build must never mix the two.
 
 Optionally capture the exact table shapes, which is the input to the layout
-table:
+table and to the row-group counts:
 
 ```bash
 ssh ubuntu@$(terraform -chdir=terraform output -raw spark_public_ip) \

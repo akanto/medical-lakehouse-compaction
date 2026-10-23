@@ -4,13 +4,21 @@ from pyspark.sql.functions import col, count as spark_count, first as spark_firs
 from medical_lakehouse_compaction.metrics.collector import BenchmarkResult, measure
 
 def reconstruct_volume(spark: SparkSession, table_path: str, series_uid: str) -> np.ndarray:
+    # The slices are ordered on the driver after collection, not with orderBy.
+    # A global sort in Spark plans as a range-partitioning exchange, and the
+    # range bounds come from a sampling job that scans the whole input, pixel
+    # data included, before the sort stage scans it again. Every W1 read of the
+    # earlier campaign paid two scans on all four layouts: 6.0 GET requests
+    # per slice on L1, against 3.0 in W2, which has no sort. One
+    # series fits on the driver, so the local sort returns the same volume
+    # from a single scan.
     rows = (
         spark.read.format("iceberg").load(table_path)
         .filter(col("series_instance_uid") == series_uid)
-        .orderBy("instance_number")
-        .select("pixel_data", "rows", "columns")
+        .select("instance_number", "pixel_data", "rows", "columns")
         .collect()
     )
+    rows.sort(key=lambda r: r.instance_number)
     return np.stack([
         np.frombuffer(r.pixel_data, dtype=np.int16).reshape(r.rows, r.columns)
         for r in rows

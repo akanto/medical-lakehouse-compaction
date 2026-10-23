@@ -1,0 +1,52 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software or its measurements, please cite the paper it
+  reproduces, listed under preferred-citation.
+type: software
+title: Medical Imaging Lakehouse Compaction Reference Implementation
+abstract: >-
+  Reproduction package for the paper "Compaction as a Storage Layout Decision
+  for 3D Medical Imaging in Network-Constrained Hybrid Clouds". It builds four
+  storage layouts of the LIDC-IDRI chest CT collection as Apache Iceberg
+  tables, measures three workloads across fifteen bandwidth and round-trip-time
+  configurations, and redraws every table and figure of the paper from the
+  committed measurement campaign.
+authors:
+  - family-names: Kanto
+    given-names: Attila
+    affiliation: Obuda University
+version: "1.0.0"
+date-released: "2026-10-30"
+license: Apache-2.0
+repository-code: https://github.com/akanto/medical-lakehouse-compaction
+keywords:
+  - compaction
+  - data lakehouse
+  - DICOM
+  - hybrid cloud
+  - medical imaging
+  - object storage
+  - open table formats
+  - storage layout
+preferred-citation:
+  type: conference-paper
+  title: >-
+    Compaction as a Storage Layout Decision for 3D Medical Imaging in
+    Network-Constrained Hybrid Clouds
+  authors:
+    - family-names: Kanto
+      given-names: Attila
+    - family-names: Kozlovszky
+      given-names: Miklos
+    - family-names: Marosi
+      given-names: Attila Csaba
+  collection-title: >-
+    Proceedings of the 2026 IEEE 18th International Scientific Conference on
+    Informatics (Informatics 2026)
+  conference:
+    name: 2026 IEEE 18th International Scientific Conference on Informatics
+    city: Poprad
+    country: SK
+    date-start: "2026-11-18"
+    date-end: "2026-11-20"
+  year: 2026

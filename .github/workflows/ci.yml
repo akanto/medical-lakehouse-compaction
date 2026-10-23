@@ -20,6 +20,8 @@ jobs:
       - run: pip install -r requirements.txt
       - run: make tables
       - run: make figures
+      - run: make cell-stats
+      - run: make break-even
 
   # The EXPERIMENT lane's unit tests. Spark runs in local mode, so this needs a
   # JVM but no cloud account.

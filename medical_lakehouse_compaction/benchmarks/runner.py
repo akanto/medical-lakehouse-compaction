@@ -100,7 +100,7 @@ def run_all_workloads(
     identified by `series_uid` on the row, not by run_index. Repetitions are
     the OUTER loop (all series once, then again) so the replicates of one
     series are spread across the cell rather than run back to back, which
-    keeps a transient — a GC pause, a page-cache warm hit on the MinIO side —
+    keeps a transient — a GC pause, a page-cache warm hit on the object-store side —
     from landing on all replicates of the same series.
 
     Repeating each series is what gives W1 a repeatability error bar. Using

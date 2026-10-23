@@ -55,18 +55,20 @@ def uid_metrics_properties(truncate: int | None = UID_METRICS_TRUNCATE) -> dict[
 
 
 def write_with_uid_metrics(df, table_name: str, truncate: int | None,
-                           partition_columns: tuple[str, ...] = ()):
+                           partition_columns: tuple[str, ...] = (),
+                           properties: dict[str, str] | None = None):
     """Create-or-replace `table_name` from `df` with the UID metrics applied.
 
     Uses DataFrameWriterV2 because only it can set table properties at
     creation time. Iceberg's write path is the same as `saveAsTable`, so the
     caller's `repartition`/`sortWithinPartitions` layout is preserved exactly
-    as before.
+    as before. `properties` adds further table properties at creation.
     """
     from pyspark.sql.functions import col
 
     writer = df.writeTo(table_name).using("iceberg")
-    for key, value in uid_metrics_properties(truncate).items():
+    for key, value in {**uid_metrics_properties(truncate),
+                       **(properties or {})}.items():
         writer = writer.tableProperty(key, value)
     if partition_columns:
         writer = writer.partitionedBy(*(col(c) for c in partition_columns))

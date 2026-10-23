@@ -63,6 +63,15 @@ def main() -> None:
           f"{raw['tables']['s1']['row_count']:,} slices\n")
     print(text_table(stats))
 
+    # Row groups per data file, quoted in the paper's dataset section. Older
+    # shape files predate the count and carry no such key.
+    if all("row_groups_per_file" in raw["tables"][l] for l in LAYOUTS):
+        print("\nParquet row groups per data file (min / median / max)")
+        for layout in LAYOUTS:
+            g = raw["tables"][layout]["row_groups_per_file"]
+            print(f"  {LABEL[layout]:<6}{g['min']} / {g['median']:g} / "
+                  f"{g['max']}   {g['total']:,} in {raw['tables'][layout]['data_files']:,} files")
+
 
 if __name__ == "__main__":
     main()

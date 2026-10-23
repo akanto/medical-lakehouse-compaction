@@ -1,0 +1,9 @@
+{
+  "timestamp": "20261027_174226",
+  "profile": "conf/profiles/experiment.yaml",
+  "dicom_dir": "data/dicom",
+  "slices": 35485,
+  "times": {
+    "s1_s": 657.5028079459998
+  }
+}

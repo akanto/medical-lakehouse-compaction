@@ -1,0 +1,15 @@
+{
+  "timestamp": "20261027_180609",
+  "profile": "conf/profiles/experiment.yaml",
+  "uid_metrics_truncate": 64,
+  "times": {
+    "s2_steps": {
+      "clone_s": 370.297672356,
+      "rewrite_s": 136.21992153700012,
+      "expire_s": 316.3731954179998
+    },
+    "s2_s": 825.9938372229999,
+    "s3_s": 301.74260063500014,
+    "s4_s": 240.3254204259997
+  }
+}

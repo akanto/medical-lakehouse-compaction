@@ -1,4 +1,4 @@
-# Local benchmarking against Docker MinIO, unshaped. See experiment.yaml for
+# Local benchmarking against Docker SILO, unshaped. See experiment.yaml for
 # what each setting means.
 warehouse: "s3a://dicom-lakehouse/warehouse"
 endpoint: "http://localhost:9000"

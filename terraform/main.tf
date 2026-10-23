@@ -35,7 +35,7 @@ resource "aws_vpc" "main" {
   tags                 = { Name = "medical-imaging-vpc" }
 }
 
-# Spark and MinIO live in SEPARATE subnets: AWS route tables are only consulted
+# Spark and the object store live in SEPARATE subnets: AWS route tables are only consulted
 # when traffic leaves a subnet, so intra-subnet traffic could never be forced
 # through the Traffic Shaping Gateway. Each side's route table points the
 # opposite subnet's CIDR at the TSG's ENI (the standard AWS middlebox pattern).
@@ -270,10 +270,10 @@ resource "aws_instance" "minio" {
   vpc_security_group_ids = [aws_security_group.internal.id]
   key_name               = var.key_name
 
-  # No separate EBS volume: MinIO holds ~28 GB of Iceberg tables; gp3 max
-  # provisioned throughput (1000 MiB/s ~ 8.4 Gb/s) clears the top 5 Gb/s
-  # network tier so the disk is never the binding constraint, and the stock
-  # docker-compose named volume on the root disk works unchanged.
+  # No separate EBS volume: the object store (SILO) holds ~28 GB of Iceberg
+  # tables; gp3 max provisioned throughput (1000 MiB/s ~ 8.4 Gb/s) clears the
+  # top 5 Gb/s network tier so the disk is never the binding constraint, and
+  # the stock docker-compose named volume on the root disk works unchanged.
   root_block_device {
     volume_size           = var.minio_root_volume_gb
     volume_type           = "gp3"
@@ -296,7 +296,7 @@ resource "aws_instance" "minio" {
   tags = { Name = "medical-imaging-minio" }
 }
 
-# Traffic Shaping Gateway: forwards all Spark<->MinIO traffic (HTB rate cap +
+# Traffic Shaping Gateway: forwards all Spark<->object-store traffic (HTB rate cap +
 # netem delay applied by scripts/setup_tsg.sh). c5n.2xlarge baseline network is
 # 10 Gb/s — the 5 Gb/s top tier crosses the single ENI twice (in + out), so the
 # gateway must sustain 10 Gb/s aggregate without burst credits.

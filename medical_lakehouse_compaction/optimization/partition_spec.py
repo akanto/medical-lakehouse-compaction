@@ -31,8 +31,18 @@ def run_partition_spec_compaction(
     # Hash-repartition on the partition key so each series lives in exactly
     # one task, giving one file per partition value. Otherwise the file count
     # per partition depends on how Spark happened to split the source read.
+    #
+    # The partition count is explicit, 8x the series count as in S3, and the
+    # table sets write.distribution-mode=none. With repartition(col) alone the
+    # session's shuffle partition count applies, and Iceberg's default hash
+    # distribution for partitioned tables adds a second shuffle on the same
+    # key, which AQE coalesces to a few write tasks. The build then shuffles
+    # the table twice, which inflates its measured rewrite time. The layout,
+    # one file per series, is the same either way.
+    n_series = df.select("series_instance_uid").distinct().count()
     write_with_uid_metrics(
-        df.repartition("series_instance_uid")
+        df.repartition(n_series * 8, "series_instance_uid")
           .sortWithinPartitions("series_instance_uid", "instance_number"),
         target_table, uid_metrics_truncate,
-        partition_columns=("series_instance_uid",))
+        partition_columns=("series_instance_uid",),
+        properties={"write.distribution-mode": "none"})

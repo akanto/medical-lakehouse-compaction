@@ -13,7 +13,7 @@ The repository has two independent halves.
 | | What it does | What it needs |
 |---|---|---|
 | **Results** | Redraws every table and figure the paper reports, from the campaign committed here | Python and matplotlib |
-| **Experiment** | Re-runs the whole measurement campaign from scratch | An AWS account and about 11 hours |
+| **Experiment** | Re-runs the whole measurement campaign from scratch | An AWS account and about 10 hours |
 
 Most visitors want the first.
 
@@ -21,32 +21,50 @@ Most visitors want the first.
 
 ```bash
 make install    # matplotlib, nothing else
-make            # tables and figures
+make            # Tables II, III and V, and the three figures
 ```
 
-`make` prints Tables II and III and writes the three figures to `figures/`.
-Individual steps are `make tables` and `make figures`.
+Each table and figure of the paper that carries a measurement has its own
+target:
+
+| Paper | Command |
+|---|---|
+| Table II, measured properties of the four tables | `make tables` |
+| Table III, structural cost per layout | `make tables` |
+| Table IV, stability of the pass totals | `make cell-stats` |
+| Table V, break-even count of each consolidated layout | `make break-even` |
+| Figures 2–4, execution time against round-trip time | `make figures` |
+
+`make tables` also lists the Parquet row groups per data file of each layout.
+`make figures` writes the PNGs to `figures/`.
 
 `make cell-stats` prints the dispersion behind the reported medians: the total
 execution time of each of the three passes, which is the paper's reproducibility
 table, and then the median, mean and standard deviation of every one of the 180
 cells, three workloads by four layouts by fifteen network configurations.
 
+`make break-even` sets the measured build time of L2, L3 and L4 against the
+time each read saves over L1, and prints the break-even count of each layout in
+each network configuration, the grid of the paper's Table V. A dash marks a
+configuration in which the layout is not faster than L1. Running the script
+with `--cells` also lists the saving behind every count.
+
 ### The committed campaign
 
-`results/campaign-2026-08-30/` is the paper's dataset: 1,260 measurements across
+`results/campaign-2026-10-21/` is the paper's dataset: 1,260 measurements across
 15 network configurations, 84 per cell. Its `README.md` records how the campaign
 was run, how it was verified, what changed against the previous protocol, and
 where the run deviated from the runbook. The three per-rate JSONs the merged
 file was built from are committed beside it, so `scripts/merge_rate_rows.py` can
-be checked rather than trusted.
+be checked rather than trusted, together with the table shapes and the build
+times.
 
 ## Experiment
 
-Re-running the campaign provisions three `c5n.2xlarge` instances — Spark, MinIO,
-and a traffic-shaping gateway between them — fetches 200 CT series from
+Re-running the campaign provisions three `c5n.2xlarge` instances — Spark, the
+object store, and a traffic-shaping gateway between them — fetches 200 CT series from
 [TCIA](https://www.cancerimagingarchive.net/collection/lidc-idri/), builds the
-four layouts, and sweeps the grid. Budget roughly 11 hours of wall time.
+four layouts, and sweeps the grid. Budget roughly 10 hours of wall time.
 
 ```bash
 cp .env.example .env       # key pair, your SSH addresses, region
@@ -59,6 +77,11 @@ make network-validate remote-experiment
 make remote-collect
 make tf-destroy
 ```
+
+The object store is SILO `RELEASE.2026-09-16T00-00-00Z`, a community-maintained
+fork of MinIO, pinned by digest in `docker-compose.yml`. SILO reads the same
+`MINIO_*` settings, which is why the container, the Makefile targets and the
+terraform outputs keep the name `minio`.
 
 `make status` reports what is running at any point. `docs/benchmark-runbook.md`
 is the operator's guide, including the failure modes worth knowing before
@@ -75,8 +98,8 @@ runs restore in minutes — and is the only thing that creates an IAM role.
 
 ### Locally, without AWS
 
-The harness also runs against MinIO in Docker, on ten series, in about ten
-minutes. This is the fastest way to see the pipeline work, and what the unit
+The harness also runs against the object store in Docker, on ten series, in
+about ten minutes. This is the fastest way to see the pipeline work, and what the unit
 tests exercise.
 
 ```bash
@@ -106,7 +129,7 @@ the full table, projecting no pixel data.
 
 ```
 evaluation/     the RESULTS lane: two table scripts, the dispersion listing,
-                and the figure script
+                the break-even listing, and the figure script
 results/        the committed campaign, and its provenance README
 medical_lakehouse_compaction/
                 ingestion, the three compaction strategies, the three
@@ -127,7 +150,16 @@ TCIA. Only the measurements taken over it are committed.
 
 ## Citing
 
-The paper is not yet published. This section will carry the citation once it is.
+The paper is accepted at the 2026 IEEE 18th International Scientific
+Conference on Informatics (Informatics 2026), Poprad, Slovakia, and will appear
+in its proceedings:
+
+> A. Kanto, M. Kozlovszky, and A. C. Marosi, "Compaction as a Storage Layout
+> Decision for 3D Medical Imaging in Network-Constrained Hybrid Clouds," in
+> *Proc. 2026 IEEE 18th International Scientific Conference on Informatics*,
+> Poprad, Slovakia, 2026.
+
+Pages and DOI will be added once the proceedings are published.
 
 ## License
 

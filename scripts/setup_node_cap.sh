@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Per-node baseline bandwidth cap — run on the Spark and MinIO instances.
+# Per-node baseline bandwidth cap — run on the Spark and object-store instances.
 #
 # Usage: sudo ./setup_node_cap.sh [rate_gbit]   (default 10)
 #

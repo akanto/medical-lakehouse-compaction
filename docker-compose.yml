@@ -1,8 +1,14 @@
 services:
   minio:
-    # MinIO withdrew both images from Docker Hub (pull access denied as of
-    # 2026-09-17); quay.io still serves them, including this pinned release.
-    image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
+    # SILO, PGSTY's community-maintained AGPL fork of MinIO, replaced MinIO.
+    # The MinIO community edition is archived, and the release of the earlier
+    # campaign (RELEASE.2024-11-07T00-52-20Z) is no longer served by Docker
+    # Hub, quay.io or dl.min.io. Pinned by digest, which
+    # covers linux/amd64 (AWS) and linux/arm64 (local). SILO reads the same
+    # MINIO_* variables, translates the `server` command, and bundles the
+    # client as both `mcli` and `mc`. The service and the container keep the
+    # name `minio`, which the Makefile and the profiles address.
+    image: docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z@sha256:635197cb9f36d01bee221d34d1c7d7960f6a95c48b0b6c01d99cd13bdae51a46
     container_name: minio
     ports:
       - "9000:9000"
@@ -20,9 +26,10 @@ services:
       retries: 5
 
   # One-shot: create the warehouse bucket so a fresh volume is usable without
-  # a manual `mc mb`. Exits 0 after the bucket exists (idempotent).
+  # a manual `mc mb`. Exits 0 after the bucket exists (idempotent). It reuses
+  # the server image, which bundles the client, so one digest pins both.
   createbuckets:
-    image: quay.io/minio/mc:latest
+    image: docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z@sha256:635197cb9f36d01bee221d34d1c7d7960f6a95c48b0b6c01d99cd13bdae51a46
     depends_on:
       minio:
         condition: service_healthy
